@@ -55,7 +55,7 @@ graph TD
 ### İşleyiş Adımları
 
 1. **Veri Kaynakları ve Gömme (Embedding):**
-   - Kullanıcının sohbet mesajları, günlük girdileri ve hedefleri gibi metin verileri, anlamsal anlamlarını yakalamak için Google'ın `text-embedding-001` modeli kullanılarak vektörlere (embeddings) dönüştürülür.
+   - Kullanıcının sohbet mesajları, günlük girdileri ve hedefleri gibi metin verileri, anlamsal anlamlarını yakalamak için Google'ın `embedding-001` modeli kullanılarak vektörlere (embeddings) dönüştürülür.
 
 2. **Vektör Depolama (Vector Storage):**
    - Oluşturulan bu vektörler, orijinal metinle birlikte **Pinecone** üzerinde çalışan bir vektör veritabanına kaydedilir. Pinecone, yüksek hızda anlamsal benzerlik araması yapmak için optimize edilmiştir. Bu, yapay zekanın "uzun süreli hafızasını" oluşturur.
@@ -80,7 +80,7 @@ Bu mimari, yapay zekanın sizi gerçekten "tanımasını" ve zamanla daha akıll
 
 ### Yapay Zeka & Machine Learning
 - **Ana LLM:** [Google Gemini Pro](https://deepmind.google/technologies/gemini/) - Zenginleştirilmiş prompt'ları işleyerek nihai yanıt üretimi
-- **Embedding Modeli:** [Google Text Embedding 001](https://ai.google.dev/docs/embeddings_guide) - Metinleri anlamsal vektörlere dönüştürme
+- **Embedding Modeli:** [Google Generative Language embedding-001](https://ai.google.dev/docs/embeddings_guide) - Metinleri anlamsal vektörlere dönüştürme
 
 ### Veritabanı & Depolama
 - **Kimlik Doğrulama:** [Firebase Authentication](https://firebase.google.com/products/auth)
@@ -113,6 +113,7 @@ my_mindmate/
 ├── requirements.txt
 └── README.md
 ```
+*Not:* Her klasör bir Python paketi; içlerinde boş da olsa birer `__init__.py` dosyası bulunuyor.
 
 ## ⚙️ Kurulum ve Çalıştırma
 
@@ -250,7 +251,7 @@ MyMindMate açık kaynak bir projedir ve ilgilenip katkıda bulunursanız çok s
 
 Bu proje, açık kaynak topluluğunun kullanımına sunulmuştur. Lütfen kaynak göstererek kullanınız. 💌
 
-## 📞 İletişim & Destek
+## 📞 İletişim
 
 - **Geliştirici:** [@dilsahelmaci](https://github.com/dilsahelmaci)
 - **Issues & Hata Bildirimi:** [GitHub Issues](https://github.com/dilsahelmaci/MyMindMate/issues)
