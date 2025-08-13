@@ -55,7 +55,7 @@ graph TD
 ### İşleyiş Adımları
 
 1. **Veri Kaynakları ve Gömme (Embedding):**
-   - Kullanıcının sohbet mesajları, günlük girdileri ve hedefleri gibi metin verileri, anlamsal anlamlarını yakalamak için Google'ın `text-embedding-001` modeli kullanılarak vektörlere (embeddings) dönüştürülür.
+   - Kullanıcının sohbet mesajları, günlük girdileri ve hedefleri gibi metin verileri, anlamsal anlamlarını yakalamak için Google'ın `embedding-001` modeli kullanılarak vektörlere (embeddings) dönüştürülür.
 
 2. **Vektör Depolama (Vector Storage):**
    - Oluşturulan bu vektörler, orijinal metinle birlikte **Pinecone** üzerinde çalışan bir vektör veritabanına kaydedilir. Pinecone, yüksek hızda anlamsal benzerlik araması yapmak için optimize edilmiştir. Bu, yapay zekanın "uzun süreli hafızasını" oluşturur.
