@@ -1,1 +1,0 @@
-# Yardımcı araçlar, validasyon, cache, export 
