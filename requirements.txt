@@ -1,0 +1,48 @@
+# --------------------------------------------------------------------------
+# 🧠 MyMindMate Projesi Bağımlılıkları (Dependencies)
+# --------------------------------------------------------------------------
+# Bu dosya, projenin çalışması için gereken tüm Python kütüphanelerini
+# içerir. `pip install -r requirements.txt` komutu ile kurabilirsiniz.
+# Versiyonların sabitlenmesi, projenin her ortamda aynı şekilde
+# çalışmasını garantiler.
+# --------------------------------------------------------------------------
+
+# Ana Uygulama Çatısı (Core Framework)
+# -------------------
+# Streamlit, web uygulamasının temelini oluşturan ana kütüphanedir.
+streamlit==1.34.0
+
+# Yapay Zeka ve Veritabanları (AI & Databases)
+# ------------------------------------
+# Bu kütüphaneler, uygulamanın zeka, hafıza ve veri depolama
+# işlevlerini yönetir.
+google-generativeai==0.5.4  # Google Gemini (LLM) API istemcisi.
+pyrebase4==4.8.0             # Firebase (Authentication ve Realtime Database) istemcisi.
+pinecone-client==3.2.2       # Pinecone (Vektör veritabanı) istemcisi, AI'ın uzun süreli hafızası.
+pytz==2024.1                 # Saat dilimi yönetimi için.
+
+# Veri İşleme (Data Handling)
+# -------------------------------
+# Veri manipülasyonu ve hesaplamalar için kullanılır.
+numpy==1.26.4
+
+# Streamlit'in Dahili Bağımlılıkları (Streamlit's Internal Dependencies)
+# ----------------------------------------------------------------------
+# Bu kütüphaneler doğrudan kodumuzda kullanılmaz, ancak Streamlit'in
+# düzgün çalışması için gereklidirler (örn: web sunucusu, otomatik
+# yenileme, zengin metin gösterimi vb.).
+# Bunları silmek, Streamlit'in çökmesine neden olur.
+pyarrow==16.0.0
+pydeck==0.8.1b0
+requests==2.31.0
+rich==13.7.1
+scipy==1.13.0
+six==1.16.0
+toml==0.10.2
+toolz==0.12.1
+tornado==6.4
+urllib3==1.26.17
+watchdog==4.0.0
+protobuf==4.25.3
+tzdata==2024.1; sys_platform == "win32"  # Windows için saat dilimi verisi.
+setuptools==80.9.0

@@ -1,0 +1,1 @@
+# Gemini istemcisi, promptlar, kişilikler 

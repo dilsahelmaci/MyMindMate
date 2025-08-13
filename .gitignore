@@ -1,0 +1,26 @@
+# MyMindMate Projesine Özel .gitignore
+# --------------------------------------
+# Bu dosya, bu projenin Git deposuna nelerin eklenmeyeceğini belirtir.
+
+# 1. Sanal Ortam
+# Projenin bağımlılıklarını içeren, kişisel bilgisayarınızda oluşturulan 'venv' klasörü.
+venv/
+
+# 2. Python Cache
+# Python'un performansı artırmak için otomatik olarak oluşturduğu geçici dosyalar.
+__pycache__/
+*.pyc
+
+# 3. Hassas Bilgiler ve Anahtarlar
+# API anahtarlarını ve diğer gizli bilgileri içeren dosyalar.
+.streamlit/secrets.toml
+.env
+
+# 4. macOS'a Özgü Dosyalar
+# macOS işletim sisteminin klasörlere otomatik eklediği sistem dosyası.
+.DS_Store
+
+# 5. Editör Ayarları
+# Kullanılan Cursor editörünün kişisel ayar klasörü.
+.cursor/rules
+.vscode/

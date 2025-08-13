@@ -1,0 +1,1 @@
+# Uygulama mantığı (auth, chat, mood, goals…) 
