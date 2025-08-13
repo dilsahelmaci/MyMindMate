@@ -111,6 +111,9 @@ with register_tab:
                             "is_first_chat": True
                         }
                         firebase_db.save_user_details_from_dict(uid, user_data, id_token)
+
+                        # Oturum durumuna kullanıcının adını ekle
+                        st.session_state["user_name"] = reg_name
                         
                         st.success("Kayıt başarılı! Ana sayfaya yönlendiriliyorsunuz...")
                         st.switch_page("pages/1_🏠_Ana_Sayfa.py")
