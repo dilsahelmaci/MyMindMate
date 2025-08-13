@@ -127,7 +127,7 @@ my_mindmate/
 ### 1. Projeyi Klonlayın
 
 ```bash
-git clone https://github.com/omermsd/MyMindMate.git
+git clone https://github.com/dilsahelmaci/MyMindMate.git
 cd MyMindMate
 ```
 
