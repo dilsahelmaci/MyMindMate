@@ -12,12 +12,6 @@ import streamlit as st
 from core.firebase_config import initialize_firebase_app
 from core import firebase_db
 
-# Bu fonksiyon artık firebase_config.py'den geliyor
-# def get_firebase():
-#     config = dict(st.secrets["firebase"])
-#     firebase = pyrebase.initialize_app(config)
-#     return firebase
-
 def firebase_login(email: str, password: str):
     """
     Kullanıcıyı Firebase ile doğrular ve başarılı olursa session state'i kurar.
@@ -56,7 +50,9 @@ def firebase_login(email: str, password: str):
     except Exception as e:
         # Hata durumunda, kullanıcıya anlaşılır bir mesaj döndür.
         err = str(e)
-        if "INVALID_PASSWORD" in err or "EMAIL_NOT_FOUND" in err:
+        if "INVALID_EMAIL" in err:
+            return False, "Lütfen geçerli bir e-posta adresi girin."
+        elif "INVALID_PASSWORD" in err or "EMAIL_NOT_FOUND" in err:
             return False, "E-posta veya şifre hatalı."
         elif "TOO_MANY_ATTEMPTS_TRY_LATER" in err:
             return False, "Çok fazla deneme yapıldı, lütfen daha sonra tekrar deneyin."
@@ -89,7 +85,9 @@ def firebase_register(email: str, password: str):
     except Exception as e:
         # Yaygın kayıt hatalarını yakala ve kullanıcıya bildir.
         err = str(e)
-        if "EMAIL_EXISTS" in err:
+        if "INVALID_EMAIL" in err:
+            return False, "Lütfen geçerli bir e-posta adresi girin."
+        elif "EMAIL_EXISTS" in err:
             return False, "Bu e-posta adresi zaten kayıtlı."
         elif "WEAK_PASSWORD" in err:
             return False, "Şifre en az 6 karakter olmalı."

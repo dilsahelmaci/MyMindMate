@@ -91,8 +91,12 @@ Bu mimari, yapay zekanın sizi gerçekten "tanımasını" ve zamanla daha akıll
 
 ```
 my_mindmate/
+│── .streamlit/
+│   └── config.toml
 ├── ai/
 │   └── gemini_client.py
+├── components/
+│   └── sidebar_info.py
 ├── core/
 │   ├── analysis_engine.py
 │   ├── firebase_auth.py
@@ -100,7 +104,7 @@ my_mindmate/
 │   ├── firebase_db.py
 │   └── memory.py
 ├── pages/
-│   ├── 0_👋_Hoşgeldin.py
+│   ├── 0_👋_Hoş_Geldin.py
 │   ├── 0_🔐_Kullanıcı_Girişi.py
 │   ├── 1_🏠_Ana_Sayfa.py
 │   ├── 2_💬_Sohbet.py
@@ -108,12 +112,13 @@ my_mindmate/
 │   ├── 4_🎯_Hedeflerim.py
 │   └── 5_⚙️_Ayarlar.py
 ├── utils/
+│   ├── quotes.py
 │   └── style.py
 ├── app.py
 ├── requirements.txt
 └── README.md
 ```
-*Not:* Her klasör bir Python paketi; içlerinde boş da olsa birer `__init__.py` dosyası bulunuyor.
+*Not:* ai/, components/, core/ ve utils/ klasörleri birer Python paketi ve içlerinde boş da olsa birer `__init__.py` dosyası bulunduruyorlar.
 
 ## ⚙️ Kurulum ve Çalıştırma
 

@@ -64,6 +64,7 @@ with register_tab:
         reg_name = st.text_input("Adınız", key="reg_name")
         reg_email = st.text_input("E-posta", key="reg_email")
         reg_password = st.text_input("Şifre", type="password", key="reg_pass")
+        st.caption("Şifreniz en az 6 karakter olmalıdır.")
         
         # Yaygın saat dilimlerinin bir listesi
         common_timezones = [

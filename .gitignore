@@ -24,6 +24,7 @@ __pycache__/
 # Kullanılan Cursor editörünün kişisel ayar klasörü.
 .cursor/rules
 .vscode/
+.devcontainer/
 
 # 6. Git Metadatası
 # Proje içindeki .git klasörünün yanlışlıkla izlenmesini engellemek için.

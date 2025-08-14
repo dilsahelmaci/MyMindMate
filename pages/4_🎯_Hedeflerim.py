@@ -53,7 +53,7 @@ id_token = st.session_state.get("user_id_token")
 # --- Arayüz Başlığı ---
 st.title("🎯 Hedeflerim")
 
-# --- YENİ: Tarih Seçici Widget'ı ---
+# --- Tarih Seçici Widget'ı ---
 selected_date_obj = st.date_input("Hedeflerini görüntülemek için bir tarih seç:", value=date.today(), key="goal_date_selector")
 selected_date_str = selected_date_obj.isoformat()
 
