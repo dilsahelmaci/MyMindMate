@@ -32,6 +32,7 @@ from datetime import date
 
 from components.sidebar_info import render_sidebar_user_info
 from core import firebase_db
+from core.memory import save_to_memory, delete_memory_by_id 
 from utils.style import inject_sidebar_styles
 
 
@@ -67,7 +68,8 @@ completed_today = []
 if all_goals_data and selected_date_str in all_goals_data:
     day_goals = all_goals_data[selected_date_str].get("pending", {})
     for goal_id, goal_details in day_goals.items():
-        if isinstance(goal_details, dict):
+        # Sadece "günlük" hedefleri bu bölümde göster
+        if isinstance(goal_details, dict) and goal_details.get("type") == "daily":
             goal_item = {"id": goal_id, **goal_details}
             if goal_details.get("is_checked"):
                 completed_today.append(goal_item)
@@ -85,12 +87,26 @@ with st.form("add_goal_form", clear_on_submit=True):
     submitted = st.form_submit_button("🎯 Ekle")
     if submitted and goal_text.strip():
         goal_type = "daily" if goal_type_tr == "Günlük" else "longterm"
-        # Günlük hedefler seçili tarihe, uzun vadeliler bugünün tarihine kaydedilir
         date_to_save = selected_date_str if goal_type == "daily" else date.today().isoformat()
-        firebase_db.save_goal(user_id, date_to_save, goal_text.strip(), goal_type, id_token)
-        st.success(f"'{goal_type_tr}' hedefin başarıyla eklendi!")
-        time.sleep(1)
-        st.rerun()
+        
+        # 1. Hedefi veritabanına kaydet ve benzersiz ID'sini al
+        new_goal_id = firebase_db.save_goal(user_id, date_to_save, goal_text.strip(), goal_type, id_token)
+        
+        if new_goal_id:
+            # 2. Aynı hedefi AI'ın uzun süreli hafızasına da kaydet (Firebase ID'si ile)
+            metadata = {
+                "type": "goal",
+                "goal_type": goal_type,
+                "date": date_to_save,
+                "source": "Hedeflerim Sayfası"
+            }
+            save_to_memory(user_id, goal_text.strip(), metadata, vector_id=new_goal_id)
+
+            st.success(f"'{goal_type_tr}' hedefin başarıyla eklendi ve AI arkadaşının hafızasına not edildi!")
+            time.sleep(1)
+            st.rerun()
+        else:
+            st.error("Hedefiniz kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.")
 
 st.markdown("---")
 
@@ -108,11 +124,17 @@ else:
             st.markdown(f"**-** {goal.get('goal', '')}")
         with col2:
             if st.button("✅", key=f"done_{goal['id']}", use_container_width=True):
+                # 1. Firebase'de hedefi güncelle
                 firebase_db.update_goal_check(user_id, goal['id'], selected_date_str, True, id_token)
+                # 2. AI hafızasından bu hedefi sil
+                delete_memory_by_id(goal['id'])
                 st.rerun()
         with col3:
             if st.button("🗑️", key=f"delete_daily_{goal['id']}", use_container_width=True):
+                # 1. Firebase'den hedefi sil
                 firebase_db.delete_goal_by_id(user_id, goal['id'], selected_date_str, id_token)
+                # 2. AI hafızasından da bu hedefi sil
+                delete_memory_by_id(goal['id'])
                 st.rerun()
 
 # Tamamlananlar
@@ -123,7 +145,7 @@ else:
     for goal in completed_today:
         st.markdown(f"~~- {goal.get('goal', '')}~~ ✅")
 
-# --- YENİ: Uzun Vadeli Hedefler Bölümü ---
+# --- Uzun Vadeli Hedefler Bölümü ---
 st.markdown("---")
 st.subheader("🏁 Uzun Vadeli Hedefler")
 
@@ -147,10 +169,15 @@ else:
             st.markdown(f"**-** {goal.get('goal', '')}")
         with col2:
             if st.button("🏁", key=f"done_longterm_{goal['id']}", use_container_width=True):
-                # Uzun vadeli hedefi tamamlandı olarak işaretle
+                # 1. Firebase'de hedefi güncelle
                 firebase_db.update_goal_check(user_id, goal['id'], goal['date'], True, id_token)
+                # 2. AI hafızasından bu hedefi sil
+                delete_memory_by_id(goal['id'])
                 st.rerun()
         with col3:
             if st.button("🗑️", key=f"delete_longterm_{goal['id']}", use_container_width=True):
+                # 1. Firebase'den hedefi sil
                 firebase_db.delete_goal_by_id(user_id, goal['id'], goal['date'], id_token)
+                # 2. AI hafızasından da bu hedefi sil
+                delete_memory_by_id(goal['id'])
                 st.rerun()

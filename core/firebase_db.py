@@ -12,6 +12,8 @@ uymak için bir `id_token` parametresi alır. Bu token olmadan hiçbir işlem
 yapılamaz. Bu, bir kullanıcının sadece kendi verilerine erişebilmesini sağlar.
 """
 from datetime import datetime
+from typing import Optional, Dict, Any
+
 from core.firebase_config import initialize_firebase_app
 
 def get_db_instance():
@@ -26,13 +28,18 @@ def get_db_instance():
 
 # --- GÜNLÜK (JOURNAL) İŞLEMLERİ ---
 
-def save_journal(user_id: str, date: str, text: str, id_token: str):
-    """Belirtilen tarihe yeni bir günlük girdisi kaydeder."""
+def save_journal(user_id: str, date: str, text: str, id_token: str) -> Optional[str]:
+    """
+    Belirtilen tarihe yeni bir günlük girdisi kaydeder ve kaydın ID'sini döndürür.
+    """
     db = get_db_instance()
     path = f"users/{user_id}/journals/{date}"
     now = datetime.now().strftime("%H:%M")
-    # `push` metodu, belirtilen yola benzersiz bir anahtar ile yeni veri ekler.
-    db.child(path).push({"text": text, "timestamp": now}, id_token)
+    # `push` metodu, oluşturulan kaydın bilgilerini bir sözlük olarak döndürür.
+    result = db.child(path).push({"text": text, "timestamp": now}, id_token)
+    # Bu sözlüğün 'name' anahtarı, kaydın benzersiz ID'sini içerir.
+    return result.get('name') if isinstance(result, dict) else None
+
 
 def get_journals(user_id: str, id_token: str) -> dict:
     """Bir kullanıcının tüm günlük girdilerini tarihe göre gruplanmış olarak çeker."""
@@ -53,12 +60,16 @@ def get_journals(user_id: str, id_token: str) -> dict:
 
 # --- HEDEF (GOAL) İŞLEMLERİ ---
 
-def save_goal(user_id: str, date: str, goal: str, goal_type: str, id_token: str):
-    """Belirtilen tarihe yeni bir hedef kaydeder."""
+def save_goal(user_id: str, date: str, goal: str, goal_type: str, id_token: str) -> Optional[str]:
+    """
+    Belirtilen tarihe yeni bir hedef kaydeder ve kaydın ID'sini döndürür.
+    """
     db = get_db_instance()
     # Tüm hedefler başlangıçta "pending" (beklemede) olarak kaydedilir.
     path = f"users/{user_id}/goals/{date}/pending"
-    db.child(path).push({"goal": goal, "type": goal_type}, id_token)
+    result = db.child(path).push({"goal": goal, "type": goal_type, "is_checked": False}, id_token)
+    return result.get('name') if isinstance(result, dict) else None
+
 
 def get_goals(user_id: str, id_token: str) -> dict:
     """Bir kullanıcının tüm hedeflerini (bekleyen ve tamamlanan) çeker."""

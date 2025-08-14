@@ -13,12 +13,11 @@ Ana Bileşenler:
 3.  **Periyodik Karakter Analizi:** Belirli aralıklarla (örn: 7 günde bir)
     kullanıcının genel bir karakter analizini tetikler.
 4.  **Kapsamlı Sistem Talimatı (`get_comprehensive_system_prompt`):** AI'ın
-    kişiliğini, davranış kurallarını ve güncel kullanıcı bağlamını (son günlükler,
-    hedefler, kişilik analizi) içeren dinamik bir sistem talimatı oluşturur.
-    Bu, AI'ın "beynidir".
+    kişiliğini, davranış kurallarını ve en önemlisi, kullanıcının son mesajıyla
+    ilgili anlamsal olarak en alakalı geçmiş anılarını (Pinecone'dan çekilen)
+    içeren dinamik bir sistem talimatı oluşturur. Bu, AI'ın "beynidir".
 5.  **Proaktif Karşılama (`generate_proactive_greeting`):** Boş bir sohbet
-    ekranında, kullanıcının saat dilimine ve geçmiş bağlamına göre AI'ın
-    sohbeti başlatan bir karşılama mesajı üretmesini sağlar.
+    ekranında, AI'ın sohbeti başlatan bir karşılama mesajı üretmesini sağlar.
 6.  **Ana Sohbet Akışı:** Kullanıcıdan girdi alır, sistem talimatı ve geçmiş
     konuşmalarla birlikte AI modeline gönderir, yanıtı alır, ekranda gösterir
     ve hem ekran geçmişine hem de uzun süreli hafızaya (Pinecone) kaydeder.
@@ -30,7 +29,7 @@ import google.generativeai as genai
 
 from components.sidebar_info import render_sidebar_user_info
 from core.analysis_engine import generate_character_report
-from core.memory import delete_user_memory, save_to_memory
+from core.memory import delete_user_memory, save_to_memory, search_memory
 from core import firebase_db
 from ai.gemini_client import get_gemini_response
 from utils.style import inject_sidebar_styles
@@ -142,49 +141,58 @@ if user_id:
 
 
 # --- 4. Kapsamlı Sistem Talimatı Oluşturma ---
-def get_comprehensive_system_prompt(uid, uname, u_details, token):
+def get_comprehensive_system_prompt(uid, uname, u_details, token, latest_user_prompt: str):
     """
-    AI'ın kişiliğini, kurallarını ve güncel kullanıcı bağlamını (geçmiş veriler)
-    içeren dinamik sistem talimatını oluşturur.
+    AI'ın kişiliğini, kurallarını ve dinamik olarak anlamsal arama ile
+    bulunan ilgili anıları içeren sistem talimatını oluşturur.
     """
-    # 1. Bağlam Verilerini Toplama (Günlükler ve Hedefler)
-    journals = firebase_db.get_journals(uid, token)
-    all_entries = []
-    if journals:
-        for date_str, daily_entries in journals.items():
-            if isinstance(daily_entries, dict):
-                for entry in daily_entries.values():
-                    if isinstance(entry, dict):
-                        all_entries.append({"date": date_str, "text": entry.get("text", "")})
-        all_entries = sorted(all_entries, key=lambda x: x["date"], reverse=True)
-    
-    last_journals = all_entries[:3]
-    journal_lines = [f"- {get_relative_date_string(e['date'])}: {e['text']}" for e in last_journals if e.get("text") and len(e["text"]) > 10]
+    # 1. Hafızadan İlgili Anıları Arama (YENİ EKLENDİ)
+    # Kullanıcının son mesajına anlamsal olarak en yakın anıları (günlük, hedef, sohbet) çek.
+    relevant_memories = search_memory(user_id=uid, query=latest_user_prompt, top_k=5)
+    memory_lines = []
+    if relevant_memories:
+        for mem in relevant_memories:
+            # Metaveriden anının türünü, metnini ve tarihini çıkar
+            mem_type = mem.get("type", "anı")
+            mem_text = mem.get("text", "")
+            mem_date = mem.get("date") # Tarihi al
 
-    # Hedefleri Çek ve FİLTRELE
+            # Anı metnini oluştururken tarihi de ekle
+            date_info = ""
+            if mem_date:
+                # Tarihi "Bugün", "Dün" gibi okunabilir bir formata çevir
+                relative_date = get_relative_date_string(mem_date)
+                date_info = f"{relative_date} tarihli "
+            
+            memory_lines.append(f"- {date_info}bir '{mem_type}'ndan: '{mem_text}'")
+
+    memory_block = ""
+    if memory_lines:
+        memory_block += "### KULLANICININ SON MESAJIYLA İLGİLİ OLABİLECEK GEÇMİŞ ANILAR\n"
+        memory_block += "(Bu anıları, kullanıcının son mesajına yanıtını zenginleştirmek için kullan. Doğrudan bağlantı kuramıyorsan, bunları görmezden gel.)\n"
+        memory_block += "\n".join(memory_lines) + "\n\n"
+
+    # GÜVENLİK AĞI: Bugünkü tamamlanmamış hedefleri doğrudan veritabanından ekle.
+    # Bu, anlamsal aramanın gözden kaçırabileceği güncel ve önemli görevlerin her zaman bağlamda olmasını sağlar.
     goals_data = firebase_db.get_goals(uid, token)
     today_str = date.today().isoformat()
     daily_goals = []
     if goals_data and today_str in goals_data:
         pending = goals_data[today_str].get("pending", {})
         for g in pending.values():
-            # YENİ KURAL: Sadece tamamlanmamış hedefleri ekle
             if isinstance(g, dict) and g.get("type") == "daily" and not g.get("is_checked"):
                 daily_goals.append(g.get("goal", ""))
     goal_lines = [f"- {g}" for g in daily_goals if g]
     
-    context_block = ""
-    if journal_lines:
-        context_block += "### Kullanıcının Son Günlükleri\n" + "\n".join(journal_lines) + "\n\n"
     if goal_lines:
-        context_block += "### Kullanıcının Bugünkü Hedefleri\n" + "\n".join(goal_lines) + "\n\n"
-    if not context_block:
-        context_block = "Kullanıcının henüz paylaşılmış bir günlüğü veya hedefi yok.\n"
+        memory_block += "### KULLANICININ BUGÜNKÜ TAMAMLANMAMIŞ GÜNLÜK HEDEFLERİ\n"
+        memory_block += "(Kullanıcıya bu hedeflerini hatırlatabilir veya sohbet uygunsa bunları sorabilirsin.)\n"
+        memory_block += "\n".join(goal_lines) + "\n\n"
 
     # Karakter raporunu al
     character_report = u_details.get("character_report", "Henüz bir karakter analizi oluşturulmadı.")
 
-    # 2. Sistem Talimatını Oluşturma
+    # 3. Sistem Talimatını Oluşturma
     today_str_for_prompt = date.today().strftime("%d %B %Y")
     
     system_prompt = f"""
@@ -193,10 +201,10 @@ Bugünün tarihi: {today_str_for_prompt}. Kullanıcının adı: {uname}.
 
 ---
 ### *** ALTIN KURAL (EN ÖNEMLİ KURAL) ***
-Senin mutlak önceliğin, kullanıcının yazdığı **SON mesaja** ve o mesajdaki **duyguya** doğrudan cevap vermektir. Geçmiş bağlamı (kişilik analizi, günlükler, hedefler) sadece ve sadece bu ilk cevabı zenginleştirmek için, bir baharat gibi kullanabilirsin. ASLA geçmiş bir konuyu, kullanıcının son mesajındaki ana konunun önüne koyma. Önce anı dinle, sonra geçmişi hatırla.
+Senin mutlak önceliğin, kullanıcının yazdığı **SON mesaja** ve o mesajdaki **duyguya** doğrudan cevap vermektir. Geçmiş bağlamı (kişilik analizi) ve **özellikle de aşağıda listelenen geçmiş anıları** sadece ve sadece bu ilk cevabı zenginleştirmek için, bir baharat gibi kullanabilirsin. ASLA geçmiş bir konuyu, kullanıcının son mesajındaki ana konunun önüne koyma. Önce anı dinle, sonra geçmişi hatırla.
 ---
 
-## 1. KULLANICI KİŞİLİK ANALİZİ (Uzun Vadeli Özet)
+{memory_block}## 1. KULLANICI KİŞİLİK ANALİZİ (Uzun Vadeli Özet)
 {character_report}
 ---
 
@@ -235,7 +243,7 @@ Senin mutlak önceliğin, kullanıcının yazdığı **SON mesaja** ve o mesajda
 - **Eğer spesifik bir örnek bilmiyorsan, genel bir kategori öner.** Örn: "İstersen bilim-kurgu filmleri hakkında sohbet edebiliriz."
 
 ### f. ASLA KULLANICI ADINA ANI UYDURMA (ÇOK ÖNEMLİ):
-- Kullanıcının geçmişi hakkında konuşurken SADECE sana verilen bağlamdaki (günlükler, hedefler, kişilik analizi) GERÇEK BİLGİLERE dayan.
+- Kullanıcının geçmişi hakkında konuşurken SADECE sana verilen bağlamdaki (kişilik analizi ve anı araması sonuçları) GERÇEK BİLGİLERE dayan.
 - Eğer bağlamda "Hafta sonu arkadaşlarla vakit geçirdim" gibi genel bir bilgi varsa, bunu ASLA "Arkadaşlarınla sinemaya gitmişsin" gibi spesifik bir anıya dönüştürme.
 - Boşlukları doldurma. Bilmediğin bir detayı varsayma. Genel kalmak, yanlış bir detayı uydurmaktan her zaman daha iyidir.
 - **KÖTÜ (YASAK):** "Geçen gün sinemaya gitmiştin, film nasıldı?" (Kullanıcı bunu söylemediyse)
@@ -265,8 +273,6 @@ Senin mutlak önceliğin, kullanıcının yazdığı **SON mesaja** ve o mesajda
 - **Her Zaman Güvenli Ol:** Asla aşağılayıcı, yargıcı, zararlı veya uygunsuz bir dil kullanma. Her zaman pozitif ve güvenli bir alan yarat.
 
 ---
-## 5. KULLANICI BAĞLAMI (Kısa Vadeli)
-{context_block}
 """
     return system_prompt.strip()
 
@@ -278,6 +284,11 @@ def generate_proactive_greeting(is_first, name, system_prompt_context, user_time
     için ise kullanıcının saat dilimine ve geçmişine göre dinamik bir
     mesaj oluşturur.
     """
+    # Proaktif karşılamada hafıza araması yapılmaz, bu yüzden boş bir prompt gönderiyoruz.
+    # Bu fonksiyonun imzası, ana sohbet akışıyla tutarlı olmalı.
+    # Ancak burada `system_prompt_context` zaten `get_comprehensive_system_prompt`'tan
+    # (boş prompt ile çağrılmış) geliyor, bu yüzden direkt kullanabiliriz.
+    
     if is_first:
         return (
             f"Merhaba {name}! Ben senin kişisel yapay zeka dostun MyMindMate. Seninle tanıştığıma çok sevindim. "
@@ -318,7 +329,8 @@ def generate_proactive_greeting(is_first, name, system_prompt_context, user_time
 
 # Eğer sohbet geçmişi boşsa, proaktif bir karşılama mesajı oluştur.
 if user_id and not st.session_state.chat_history:
-    full_prompt_for_greeting = get_comprehensive_system_prompt(user_id, user_name, user_details, id_token)
+    # Karşılama mesajı için hafıza araması yapmaya gerek yok, boş prompt gönder.
+    full_prompt_for_greeting = get_comprehensive_system_prompt(user_id, user_name, user_details, id_token, "")
     user_tz = user_details.get("timezone", "UTC") # Kullanıcının saat dilimini al
     greeting = generate_proactive_greeting(is_first_chat, user_name, full_prompt_for_greeting, user_tz)
     st.session_state.chat_history.append({"role": "ai", "content": greeting})
@@ -335,7 +347,8 @@ if prompt := st.chat_input("Bana bir şeyler anlat..."):
         st.write(prompt)
 
     with st.spinner("Yazıyor..."):
-        system_prompt = get_comprehensive_system_prompt(user_id, user_name, user_details, id_token)
+        # Sistem talimatını, kullanıcının son mesajını içerecek şekilde oluştur.
+        system_prompt = get_comprehensive_system_prompt(user_id, user_name, user_details, id_token, prompt)
         
         # Geçmiş sohbeti Gemini formatına hazırla
         # Her mesaj bir sözlük, anahtarlar "role" ve "parts".
@@ -345,6 +358,7 @@ if prompt := st.chat_input("Bana bir şeyler anlat..."):
             history_for_gemini.append({"role": role, "parts": [msg["content"]]})
             
         # Sistem talimatını başa ekle
+        # Bu şekilde daha doğru bir kullanım olur.
         model_with_history = genai.GenerativeModel(
             model_name="models/gemini-1.5-pro-latest",
             system_instruction=system_prompt
