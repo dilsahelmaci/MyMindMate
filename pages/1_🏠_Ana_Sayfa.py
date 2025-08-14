@@ -55,8 +55,6 @@ journals = firebase_db.get_journals(user_id, id_token)
 goals = firebase_db.get_goals(user_id, id_token)
 
 # --- Arayüz ---
-st.title(f"Tekrar Hoş Geldin, {user_name}! 👋")
-
 # Kullanıcı giriş yaptıysa kişisel karşılama
 st.markdown(f"""
     <div style="background-color:#E0F2F1; border-left: 6px solid #4DB6AC; border-radius:10px; padding:20px; margin-bottom:20px;">
@@ -139,8 +137,6 @@ with col2:
     st.markdown("### 📘 Günlüğüm")
     st.caption("Düşüncelerini, hislerini ve gün içinde yaşadıklarını güvenle kaydet. Kendini keşfet.")
     
-    # VERİTABANINDAN TEKRAR VERİ ÇEKMEK YERİNE MEVCUT OLANI KULLAN
-    # journals = firebase_db.get_journals(user_id) 
     if journals:
         last_date = sorted(journals.keys(), reverse=True)[0]
         last_entry = list(journals[last_date].values())[0]
@@ -156,8 +152,7 @@ with col3:
     st.caption("Günlük ve uzun vadeli hedeflerini belirle, adımlarını takip et ve gelişimini izle.")
 
     today_str = date.today().isoformat()
-    # VERİTABANINDAN TEKRAR VERİ ÇEKMEK YERİNE MEVCUT OLANI KULLAN
-    # goals = firebase_db.get_goals(user_id)
+
     pending_goals = []
     
     has_goals_today = goals and today_str in goals and (goals[today_str].get("pending") or goals[today_str].get("completed"))

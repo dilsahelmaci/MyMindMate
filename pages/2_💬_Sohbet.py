@@ -338,7 +338,6 @@ if prompt := st.chat_input("Bana bir şeyler anlat..."):
         system_prompt = get_comprehensive_system_prompt(user_id, user_name, user_details, id_token)
         
         # Geçmiş sohbeti Gemini formatına hazırla
-        # ÖNEMLİ: Bu kısım, API'nin beklediği formatta olmalı.
         # Her mesaj bir sözlük, anahtarlar "role" ve "parts".
         history_for_gemini = []
         for msg in st.session_state.chat_history[:-1]: # Son kullanıcı mesajı hariç
@@ -346,8 +345,6 @@ if prompt := st.chat_input("Bana bir şeyler anlat..."):
             history_for_gemini.append({"role": role, "parts": [msg["content"]]})
             
         # Sistem talimatını başa ekle
-        # NOT: Gemini API'de system instruction için özel bir yer var.
-        # Bu şekilde daha doğru bir kullanım olur.
         model_with_history = genai.GenerativeModel(
             model_name="models/gemini-1.5-pro-latest",
             system_instruction=system_prompt

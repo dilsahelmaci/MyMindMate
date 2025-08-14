@@ -141,7 +141,7 @@ else:
         st.warning("Seçtiğiniz filtreye uygun günlük bulunamadı.")
     else:
         for entry in filtered_entries:
-            # YERELLEŞTİRME DÜZELTMESİ: Ay ismini kendi Türkçe haritamızdan alıyoruz.
+            # Ay ismini kendi Türkçe haritamızdan alıyoruz.
             # Bu, sistem dilinden bağımsız olarak her zaman Türkçe gösterim sağlar.
             day = entry['date_obj'].day
             month_tr = month_map[entry['date_obj'].month]

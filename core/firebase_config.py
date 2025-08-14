@@ -14,17 +14,6 @@ def get_firebase_config():
     """Streamlit secrets'tan Firebase konfigürasyonunu çeker."""
     return dict(st.secrets["firebase"])
 
-
-# ÖNEMLİ NOT: @st.cache_resource KULLANILMAMALIDIR!
-# ---------------------------------------------------
-# Geçmişte burada @st.cache_resource dekoratörü kullanılıyordu. Ancak bu,
-# pyrebase'in kimlik doğrulama (auth) nesnesinin "bayat" (stale) kalmasına
-# neden oluyordu. Sonuç olarak, bir kullanıcı çıkış yapıp tekrar giriş
-# yapmaya çalıştığında, eski ve geçersiz bir token yüzünden hatalar alınıyordu.
-#
-# ÇÖZÜM: Her işlem için `initialize_firebase_app()` fonksiyonunu çağırarak
-# her seferinde temiz ve yeni bir Firebase bağlantı nesnesi oluşturmak, bu
-# sorunu kökten çözer ve her işlemin güvenilir olmasını sağlar.
 def initialize_firebase_app():
     """
     Yeni ve temiz bir Firebase uygulama bağlantısı başlatır.

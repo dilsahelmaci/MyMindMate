@@ -13,8 +13,8 @@ def render_sidebar_user_info():
             st.markdown(f"📧 **E-posta:** {st.session_state.get('user_email', 'N/A')}")
 
             if st.button("🔒 Oturumu Kapat", key="sidebar_logout"):
-                # Clear the entire session state
+                # Tüm session state'i temizle
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
-                # Rerun to redirect to the login page via the check in app.py
+                # app.py'deki kontrol ile giriş sayfasına yönlendirmek için yeniden çalıştır
                 st.rerun()
