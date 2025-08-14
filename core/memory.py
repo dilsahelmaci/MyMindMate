@@ -60,18 +60,23 @@ pinecone_index = pc.Index(INDEX_NAME)
 # --- YARDIMCI FONKSİYON: EMBEDDING ALMA ---
 
 @st.cache_data(show_spinner=False)
-def get_gemini_embedding(text: str) -> List[float]:
+def get_gemini_embedding(text: str, task_type: str = "retrieval_document") -> List[float]:
     """
     Verilen metin için Google Gemini embedding'i oluşturur.
     
     `@st.cache_data` sayesinde aynı metin için tekrar tekrar API çağrısı
     yapılmaz, bu da performansı artırır ve maliyeti düşürür.
+
+    Args:
+        text: Embedding'i oluşturulacak metin.
+        task_type: Görev türü. Doküman kaydı için 'retrieval_document',
+                   arama sorgusu için 'retrieval_query' olmalıdır.
     """
     try:
         response = genai.embed_content(
             model="models/embedding-001",
             content=text,
-            task_type="retrieval_document"  # Arama amaçlı embedding olduğunu belirtir.
+            task_type=task_type
         )
         return response["embedding"]
     except Exception as e:
@@ -80,13 +85,21 @@ def get_gemini_embedding(text: str) -> List[float]:
 
 # --- ANA HAFIZA YÖNETİMİ FONKSİYONLARI ---
 
-def save_to_memory(user_id: str, text: str, metadata: Dict[str, Any]):
-    """Bir metni, meta verileriyle birlikte kullanıcının hafızasına kaydeder."""
+def save_to_memory(user_id: str, text: str, metadata: Dict[str, Any], vector_id: Optional[str] = None):
+    """
+    Bir metni, meta verileriyle birlikte kullanıcının hafızasına kaydeder.
+
+    Eğer bir `vector_id` sağlanırsa, bu ID kullanılır. Sağlanmazsa,
+    benzersiz bir UUID oluşturulur.
+    """
     if not user_id or not text:
         return
 
     # Pinecone'a gönderilecek her vektörün benzersiz bir ID'si olmalıdır.
-    vector_id = str(uuid.uuid4())
+    # Eğer dışarıdan bir ID verilmediyse, burada kendimiz oluştururuz.
+    if vector_id is None:
+        vector_id = str(uuid.uuid4())
+        
     embedding = get_gemini_embedding(text)
     if not embedding:
         return  # Embedding alınamadıysa kaydetme.
@@ -116,7 +129,8 @@ def search_memory(user_id: str, query: str, top_k: int = 5) -> List[Dict[str, An
     if not user_id or not query:
         return []
 
-    query_embedding = get_gemini_embedding(query)
+    # ARAMA SORGUSU için doğru görev türünü kullan
+    query_embedding = get_gemini_embedding(query, task_type="retrieval_query")
     if not query_embedding:
         return []
 
@@ -135,6 +149,15 @@ def search_memory(user_id: str, query: str, top_k: int = 5) -> List[Dict[str, An
     except Exception as e:
         st.error(f"Hafızada arama yaparken bir Pinecone hatası oluştu: {e}")
         return []
+
+def delete_memory_by_id(vector_id: str):
+    """Belirli bir anıyı (vektörü) ID'sine göre Pinecone'dan siler."""
+    if not vector_id:
+        return
+    try:
+        pinecone_index.delete(ids=[vector_id])
+    except Exception as e:
+        st.error(f"Anı silinirken bir Pinecone hatası oluştu: {e}")
 
 def delete_user_memory(user_id: str):
     """

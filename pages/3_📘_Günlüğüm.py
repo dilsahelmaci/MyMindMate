@@ -22,6 +22,7 @@ from datetime import date, datetime
 
 from components.sidebar_info import render_sidebar_user_info
 from core import firebase_db
+from core.memory import save_to_memory  # AI hafıza fonksiyonunu içeri aktar
 from utils.style import inject_sidebar_styles
 
 
@@ -69,9 +70,22 @@ with st.form(key="journal_form", clear_on_submit=True):
     if submitted:
         if journal_text.strip():
             date_key = str(selected_date)
-            firebase_db.save_journal(user_id, date_key, journal_text, id_token)
-            st.success("Günlüğünüz başarıyla kaydedildi!")
-            st.rerun() # Sayfayı yenilemek, formu ve state'i doğal olarak sıfırlar
+            # 1. Günlüğü veritabanına kaydet ve benzersiz ID'sini al
+            new_journal_id = firebase_db.save_journal(user_id, date_key, journal_text, id_token)
+            
+            if new_journal_id:
+                # 2. Aynı günlüğü AI'ın uzun süreli hafızasına da kaydet (Firebase ID'si ile)
+                metadata = {
+                    "type": "journal_entry", 
+                    "date": date_key,
+                    "source": "Günlüğüm Sayfası"
+                }
+                save_to_memory(user_id, journal_text, metadata, vector_id=new_journal_id)
+
+                st.success("Günlüğünüz başarıyla kaydedildi ve AI arkadaşınızın hafızasına eklendi!")
+                st.rerun() # Sayfayı yenilemek, formu ve state'i doğal olarak sıfırlar
+            else:
+                st.error("Günlüğünüz kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.")
         else:
             st.warning("Kaydedilecek bir şey yazmadınız.")
 
