@@ -78,6 +78,10 @@ graph TD
   AUTH --> UI
   UI -- read/write --> RTDB
   UI -- displays --> A
+
+  %% Transparent styles for subgraphs
+  style App fill:none,stroke:#888,stroke-width:1px
+  style Firebase fill:none,stroke:#888,stroke-width:1px
 ```
 
 ### How It Works
