@@ -1,4 +1,4 @@
-# MyMindMate - Kişisel Yapay Zeka Yoldaşınız
+# MyMindMate – Your Personal AI Companion
 
 <div align="center">
 
@@ -10,84 +10,115 @@
 
 </div>
 
-MyMindMate, zihinsel sağlığınızı desteklemek, düşüncelerinizi organize etmek ve hedeflerinize ulaşmanıza yardımcı olmak için tasarlanmış kişisel yapay zeka yoldaşınız. Kendisi sadece bir sohbet botu değil, aynı zamanda günlük tutabileceğiniz, hedefler belirleyebileceğiniz ve bu süreçte sizi daha iyi tanıyan bir arkadaştır.
+MyMindMate is **your personal AI companion** designed to support mental wellness, organize your thoughts, and help you reach your goals.
 
-## 📚 İçindekiler
+I’ve always been someone who writes down my day, plans, and reflections in a notebook — so I wanted to bring that habit into the digital world. 
 
-- [Temel Özellikler](#-temel-özellikler)
-- [Yapay Zeka Mimarisi](#-yapay-zeka-mimarisi-rag-akışı)
-- [Teknoloji Stack'i](#️-kullanılan-teknolojiler-tech-stack)
-- [Kurulum](#️-kurulum-ve-çalıştırma)
-- [Kullanım](#-kullanım)
-- [Katkıda Bulunma](#-katkıda-bulunma)
-- [Lisans](#-lisans)
+MyMindMate was born from this idea: **a space where you can write your journal, set personal goals, and build a connection with an AI that learns and grows with you 🌱** 
 
-## 🚀 Temel Özellikler
+---
 
-- **🧠 RAG Destekli Hafıza:** Sadece bir sohbet botu değil, **Retrieval-Augmented Generation (RAG)** mimarisi kullanarak geçmiş konuşmaları, günlükleri ve hedefleri hatırlar. Bu sayede standart LLM'lerin çok ötesinde, derinlemesine bağlamsal ve kişisel bir sohbet deneyimi sunar.
-- **📘 Kişisel Günlük:** Düşüncelerinizi ve duygularınızı güvenli bir ortamda kaydedin. Bu veriler, RAG mimarisi için bir bilgi kaynağı olarak kullanılır.
-- **🎯 Hedef Yönetimi:** Günlük ve uzun vadeli hedefler belirleyin. AI, bu hedefleri anlayarak size proaktif olarak destek olabilir.
-- **🤖 Kişiselleştirilmiş Yapay Zeka:** Girdiğiniz günlük ve hedefleri periyodik olarak analiz ederek sizi daha derinlemesine anlar ve daha empatik, kişiselleştirilmiş öneriler sunar.
-- **🔐 Güvenli ve Özel:** Tüm verileriniz Firebase üzerinde güvenli bir şekilde saklanır ve kimlik doğrulama ile korunur. Verileriniz size özeldir.
+## 📚 Table of Contents
+- [Core Features](#-core-features)
+- [AI Architecture](#-ai-architecture-rag-flow)
+- [Tech Stack](#️-tech-stack)
+- [Setup](#️-setup--installation)
+- [Usage](#-usage)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Highlights](#-highlights)
 
-## 🤖 Yapay Zeka Mimarisi: RAG Akışı
+---
 
-Bu projenin zekası, standart bir LLM çağrısından daha fazlasıdır. Kullanıcıya özel, kalıcı bir hafıza oluşturmak için **Retrieval-Augmented Generation (RAG)** deseni uygulanmıştır.
+## 🚀 Core Features
 
-### Sistem Akış Diyagramı
+- **🧠 RAG-Enabled Memory:** MyMindMate uses a **Retrieval-Augmented Generation (RAG)** architecture to remember past conversations, journals, and goals — enabling a deeper, more personal, and contextually aware AI experience.
+- **📘 Personal Journal:** Securely record your daily thoughts and reflections. These entries serve as one of the data sources that enrich the AI’s long-term memory.
+- **🎯 Goal Management:** Set daily and long-term goals. The AI tracks and references these goals to provide proactive, goal-oriented support.
+- **🤖 Personalized AI:** Continuously analyzes your journals and goals to understand you better and provide empathetic, meaningful, and tailored responses.
+- **🔐 Secure & Private:** All data is securely stored using Firebase Authentication and Database. Your information is completely private and unique to you.
+
+---
+
+## 🤖 AI Architecture: RAG Flow
+
+The intelligence behind MyMindMate goes beyond a standard LLM query. It uses a **Retrieval-Augmented Generation (RAG)** pattern to build a personalized, persistent memory for each user.
+
+### System Architecture
 
 ```mermaid
 graph TD
-    A[Kullanıcı Mesajı] --> B[Text Embedding]
-    B --> C[Pinecone Similarity Search]
-    C --> D[İlgili Anıları Getir]
-    D --> E[Context Augmentation]
-    E --> F[Gemini Pro LLM]
-    F --> G[Kişiselleştirilmiş Yanıt]
-    
-    H[Günlük Girdileri] --> I[Embedding + Storage]
-    J[Hedefler] --> I
-    K[Sohbet Geçmişi] --> I
-    I --> L[Pinecone Vector DB]
-    L --> C
+  %% Inputs
+  U[User Message] --> E1[Embed: embedding-001]
+  J[Journal Entries] --> E2[Embed and Store]
+  G[Goals] --> E2
+  H[Chat History] --> E2
+
+  %% Vector DB
+  E2 --> V[(Pinecone Vector DB)]
+  E1 --> SR[Semantic Similarity Search]
+  V --> SR
+
+  %% Context + LLM
+  SR --> CTX[Context Augmentation]
+  CTX --> LLM[Gemini Pro LLM]
+  LLM --> A[Personalized Response]
+
+  %% App & Services
+  subgraph App
+    UI[Streamlit UI]
+  end
+  subgraph Firebase
+    AUTH[Authentication]
+    RTDB[Realtime Database]
+  end
+
+  %% Data flows with app
+  UI --> AUTH
+  AUTH --> UI
+  UI -- read/write --> RTDB
+  UI -- displays --> A
 ```
 
-### İşleyiş Adımları
+### How It Works
 
-1. **Veri Kaynakları ve Gömme (Embedding):**
-   - Kullanıcının sohbet mesajları, günlük girdileri ve hedefleri gibi metin verileri, anlamsal anlamlarını yakalamak için Google'ın `embedding-001` modeli kullanılarak vektörlere (embeddings) dönüştürülür.
+1. **Data Sources & Embedding:**  
+   User data such as chat messages, journal entries, and goals are converted into semantic embeddings using Google’s `embedding-001` model.
 
-2. **Vektör Depolama (Vector Storage):**
-   - Oluşturulan bu vektörler, orijinal metinle birlikte **Pinecone** üzerinde çalışan bir vektör veritabanına kaydedilir. Pinecone, yüksek hızda anlamsal benzerlik araması yapmak için optimize edilmiştir. Bu, yapay zekanın "uzun süreli hafızasını" oluşturur.
+2. **Vector Storage:**  
+   These embeddings, along with their source text, are stored in a **Pinecone** vector database — enabling high-speed semantic search and forming the AI’s “long-term memory.”
 
-3. **Anlamsal Arama (Retrieval):**
-   - Kullanıcı yeni bir mesaj gönderdiğinde, bu mesaj da anlık olarak bir vektöre dönüştürülür.
-   - Ardından, Pinecone veritabanında bu yeni mesaja anlamsal olarak en çok benzeyen geçmiş kayıtları (en ilgili "hatıraları") bulmak için bir benzerlik araması (similarity search) yapılır.
+3. **Semantic Retrieval:**  
+   When a new message is received, it’s also embedded and used to search Pinecone for the most contextually relevant memories or records.
 
-4. **Bağlam Zenginleştirme (Augmentation):**
-   - Bulunan en ilgili "hatıralar", kullanıcının asıl mesajıyla birleştirilerek zenginleştirilmiş bir bağlam (context) oluşturulur.
+4. **Context Augmentation:**  
+   The retrieved memories are merged with the user’s current message to create an enriched context for the AI.
 
-5. **Yanıt Üretimi (Generation):**
-   - Bu zenginleştirilmiş bağlam, nihai yanıtı üretmesi için **Google Gemini Pro** modeline bir `prompt` olarak gönderilir. Bu sayede model, sadece son mesaja değil, aynı zamanda geçmişteki en alakalı bilgilere de dayanarak bir yanıt üretir.
+5. **Response Generation:**  
+   This context is passed to **Google Gemini Pro**, which generates a thoughtful, personalized response that references your past inputs and goals.
 
-Bu mimari, yapay zekanın sizi gerçekten "tanımasını" ve zamanla daha akıllı, daha kişisel bir yoldaş haline gelmesini sağlar.
+This architecture allows MyMindMate to *truly know you*, becoming a smarter and more emotionally intelligent companion over time.
 
-## 🛠️ Kullanılan Teknolojiler (Tech Stack)
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend & Backend
-- **Framework:** [Streamlit](https://streamlit.io/) - Hızlı ve modern web uygulaması geliştirme
-- **Programlama Dili:** [Python 3.8+](https://www.python.org/)
+- **Framework:** [Streamlit](https://streamlit.io/) – fast and modern web app framework
+- **Language:** [Python 3.8+](https://www.python.org/)
 
-### Yapay Zeka & Machine Learning
-- **Ana LLM:** [Google Gemini Pro](https://deepmind.google/technologies/gemini/) - Zenginleştirilmiş prompt'ları işleyerek nihai yanıt üretimi
-- **Embedding Modeli:** [Google Generative Language embedding-001](https://ai.google.dev/docs/embeddings_guide) - Metinleri anlamsal vektörlere dönüştürme
+### AI & Machine Learning
+- **Main LLM:** [Google Gemini Pro](https://deepmind.google/technologies/gemini/) – generates context-aware, personalized responses
+- **Embedding Model:** [Google Generative Language embedding-001](https://ai.google.dev/docs/embeddings_guide) – transforms text into semantic embeddings
 
-### Veritabanı & Depolama
-- **Kimlik Doğrulama:** [Firebase Authentication](https://firebase.google.com/products/auth)
-- **Yapısal Veri:** [Firebase Realtime Database](https://firebase.google.com/products/realtime-database) - Kullanıcı profilleri, günlükler ve hedefler
-- **Vektör Veritabanı:** [Pinecone](https://www.pinecone.io/) - RAG mimarisinin kalbi, anlamsal arama motoru
+### Database & Storage
+- **Authentication:** [Firebase Authentication](https://firebase.google.com/products/auth)
+- **Structured Data:** [Firebase Realtime Database](https://firebase.google.com/products/realtime-database) – user profiles, journals, and goals
+- **Vector Database:** [Pinecone](https://www.pinecone.io/) – the semantic search engine at the heart of the RAG system
 
-## 📂 Proje Yapısı
+---
+
+## 📂 Project Structure
 
 ```
 my_mindmate/
@@ -104,13 +135,13 @@ my_mindmate/
 │   ├── firebase_db.py
 │   └── memory.py
 ├── pages/
-│   ├── 0_👋_Hoş_Geldin.py
-│   ├── 0_🔐_Kullanıcı_Girişi.py
-│   ├── 1_🏠_Ana_Sayfa.py
-│   ├── 2_💬_Sohbet.py
-│   ├── 3_📘_Günlüğüm.py
-│   ├── 4_🎯_Hedeflerim.py
-│   └── 5_⚙️_Ayarlar.py
+│   ├── 0_👋_Hoş_Geldin.py             # Welcome page
+│   ├── 0_🔐_Kullanıcı_Girişi.py       # Login page
+│   ├── 1_🏠_Ana_Sayfa.py              # Home page
+│   ├── 2_💬_Sohbet.py                 # Chat page
+│   ├── 3_📘_Günlüğüm.py               # Journal page
+│   ├── 4_🎯_Hedeflerim.py             # Goals page
+│   └── 5_⚙️_Ayarlar.py                # Settings page
 ├── utils/
 │   ├── quotes.py
 │   └── style.py
@@ -118,60 +149,53 @@ my_mindmate/
 ├── requirements.txt
 └── README.md
 ```
-*Not:* ai/, components/, core/ ve utils/ klasörleri birer Python paketi ve içlerinde boş da olsa birer `__init__.py` dosyası bulunduruyorlar.
+*Note:* Each folder (`ai/`, `components/`, `core/`, `utils/`) contains an `__init__.py` file to maintain Python package integrity.
 
-## ⚙️ Kurulum ve Çalıştırma
+💡 Heads up! The current version of the codebase is written in Turkish. An English version is planned for future updates. The functionality and structure remain fully understandable regardless of language.
 
-### Önkoşullar
+---
 
-- Python 3.8 veya üzeri
+## ⚙️ Setup & Installation
+
+### Prerequisites
+- Python 3.8 or higher
 - Git
-- Google Cloud hesabı (Gemini API için)
-- Firebase hesabı
-- Pinecone hesabı
+- Google Cloud account (for Gemini API)
+- Firebase account
+- Pinecone account
 
-### 1. Projeyi Klonlayın
-
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/dilsahelmaci/MyMindMate.git
 cd MyMindMate
 ```
 
-### 2. Sanal Ortam Oluşturun ve Aktive Edin
-
+### 2. Create and Activate a Virtual Environment
 **Windows:**
 ```bash
 python -m venv venv
 venv\Scripts\activate
 ```
-
 **macOS/Linux:**
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 3. Bağımlılıkları Yükleyin
-
+### 3. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. API Anahtarlarını Yapılandırın
-
-Projenizi klonladıktan sonra kök dizinde `.streamlit` klasörünün hazır geldiğini göreceksiniz. Yapmanız gereken tek şey, bu klasörün içine `secrets.toml` adında bir dosya oluşturmaktır.
-
-Aşağıdaki komutla dosyayı oluşturabilirsiniz:
+### 4. Configure API Keys
+Create a file named `secrets.toml` inside the `.streamlit` folder:
 
 ```bash
 touch .streamlit/secrets.toml
 ```
 
-`.streamlit/secrets.toml` dosyasını aşağıdaki şablonla doldurun:
-
+Example template:
 ```toml
-# .streamlit/secrets.toml
-
 [google]
 api_key = "YOUR_GEMINI_API_KEY"
 
@@ -188,81 +212,88 @@ databaseURL = "https://YOUR_PROJECT-default-rtdb.firebaseio.com/"
 api_key = "YOUR_PINECONE_API_KEY"
 ```
 
-### 5. API Anahtarlarını Alma
+---
 
+### 5. Obtain API Keys
 <details>
-<summary><b>🔑 Google Gemini API Anahtarı</b></summary>
+<summary><b>🔑 Google Gemini API Key</b></summary>
 
-1. [Google AI Studio](https://makersuite.google.com/app/apikey)'ya gidin
-2. "Create API Key" butonuna tıklayın
-3. Anahtarınızı kopyalayın ve `secrets.toml`'e ekleyin
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)  
+2. Click **Create API Key**  
+3. Copy and paste your key into `secrets.toml`
 
 </details>
 
 <details>
-<summary><b>🔥 Firebase Yapılandırması</b></summary>
+<summary><b>🔥 Firebase Setup</b></summary>
 
-1. [Firebase Console](https://console.firebase.google.com/)'a gidin
-2. "Add project" ile yeni proje oluşturun
-3. Authentication ve Realtime Database'i etkinleştirin
-4. Project Settings > General'dan config bilgilerini alın
+1. Go to [Firebase Console](https://console.firebase.google.com/)  
+2. Create a new project  
+3. Enable Authentication and Realtime Database  
+4. Get your configuration details from Project Settings > General
 
 </details>
 
 <details>
-<summary><b>🌲 Pinecone Kurulumu</b></summary>
+<summary><b>🌲 Pinecone Setup</b></summary>
 
-1. [Pinecone](https://www.pinecone.io/)'da hesap oluşturun
-2. API anahtarınızı alın
-3. **Not:** Index otomatik olarak oluşturulacaktır. Manuel index oluşturmanıza gerek yoktur.
+1. Sign up at [Pinecone](https://www.pinecone.io/)  
+2. Copy your API key  
+3. *(Note: The index is automatically created — no manual setup required)*
 
 </details>
 
-### 6. Uygulamayı Başlatın
+---
 
+### 6. Run the App
 ```bash
 streamlit run app.py
 ```
 
-## 🎯 Kullanım
+---
 
-### İlk Kurulum
+## 🎯 Usage
 
-1. **Hesap Oluşturun:** Güvenli Firebase Authentication ile kayıt olun
-2. **Profil Bilgilerinizi Girin:** Kişisel tercihlerinizi belirtin
-3. **İlk Günlük Girisinizi Yapın:** AI'nın sizi tanıması için
-4. **Hedeflerinizi Belirleyin:** Kısa ve uzun vadeli amaçlarınızı kaydedin
+### First-Time Setup
+1. **Create an Account:** Sign up securely using Firebase Authentication.
+2. **Set Up Your Profile:** Add preferences and personal info.
+3. **Write Your First Journal Entry:** Help the AI understand you.
+4. **Set Your Goals:** Define short-term and long-term objectives.
 
-### Günlük Kullanım
-
-- **🌅 Sabah:** Günlük hedeflerinizi gözden geçirin
-- **📝 Gün İçinde:** Düşüncelerinizi günlüğe kaydedin  
-- **💭 Her Zaman:** AI ile sohbet ederek destek alın
-- **🌙 Akşam:** Günü değerlendirin ve yarın için plan yapın
-
-## 🤝 Katkıda Bulunma
-
-MyMindMate açık kaynak bir projedir ve ilgilenip katkıda bulunursanız çok sevinirim!
-
-### Nasıl Katkıda Bulunabilirim?
-
-1. **Fork** edin
-2. Feature branch oluşturun (`git checkout -b feature/YeniOzellik`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Yeni özellik eklendi'`)
-4. Branch'inizi push edin (`git push origin feature/YeniOzellik`)
-5. **Pull Request** oluşturun
-
-## 📄 Lisans
-
-Bu proje, açık kaynak topluluğunun kullanımına sunulmuştur. Lütfen kaynak göstererek kullanınız. 💌
-
-## 📞 İletişim
-
-- **Geliştirici:** [@dilsahelmaci](https://github.com/dilsahelmaci)
-- **Issues & Hata Bildirimi:** [GitHub Issues](https://github.com/dilsahelmaci/MyMindMate/issues)
+### Daily Usage
+- **🌅 Morning:** Review your daily goals.
+- **📝 During the Day:** Log your thoughts and feelings.
+- **💭 Anytime:** Chat with your AI companion for motivation and reflection.
+- **🌙 Evening:** Reflect on the day and plan tomorrow.
 
 ---
 
-<div align="center">
+## 🤝 Contributing
 
-</div>
+MyMindMate is open source! Contributions are always welcome 💫
+
+### How to Contribute
+1. **Fork** the repository  
+2. Create a new branch (`git checkout -b feature/NewFeature`)  
+3. Commit your changes (`git commit -m 'Add new feature'`)  
+4. Push the branch (`git push origin feature/NewFeature`)  
+5. Open a **Pull Request**
+
+---
+
+## 📄 License
+This project is released under an open-source license. Please cite appropriately if used or modified. 💌
+
+---
+
+## 📞 Contact
+- **Developer:** [@dilsahelmaci](https://github.com/dilsahelmaci)  
+- **Report Issues:** [GitHub Issues](https://github.com/dilsahelmaci/MyMindMate/issues)
+
+---
+
+## 💼 Highlights
+- Designed and deployed an **LLM-powered personal assistant** integrating **Google Gemini Pro**, **Firebase**, and **Pinecone**.
+- Implemented **Retrieval-Augmented Generation (RAG)** for personalized, context-rich dialogue.
+- Built a fully functional **Streamlit web app** with secure user authentication and real-time data management.
+- Demonstrates strong skills in **AI integration**, **data pipelines**, and **end-to-end deployment**.
